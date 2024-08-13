@@ -16,7 +16,7 @@ def last_token_pool(last_hidden_states: torch.Tensor,
         return last_hidden_states[torch.arange(batch_size, device=last_hidden_states.device), sequence_lengths]
 
 # Load the IMDB dataset
-dataset = load_dataset('imdb', split = 'test')  # Use a subset (first 100 examples) for demonstration
+dataset = load_dataset('imdb', split = 'test')
 
 # Initialize the tokenizer and model
 tokenizer = AutoTokenizer.from_pretrained('Alibaba-NLP/gte-Qwen2-7B-instruct', trust_remote_code=True)
@@ -25,34 +25,24 @@ model = model.cuda()
 
 max_length = 2048
 
-# Prepare to store embeddings
 all_embeddings = []
 all_labels = []
 
-# Disable gradient computation
 with torch.no_grad():
     for example in tqdm(dataset):
         text = example['text']
         label = example['label']
         inputs = tokenizer(text, max_length=max_length, padding=True, truncation=True, return_tensors='pt')
 
-        # Move inputs to CUDA
         inputs = {k: v.cuda() for k, v in inputs.items()}
 
-        # Get model outputs
         outputs = model(**inputs)
-
-        # Get last hidden embeddings
         embeddings = last_token_pool(outputs.last_hidden_state, inputs['attention_mask'])
-
-        # Normalize embeddings
         embeddings = F.normalize(embeddings, p=2, dim=1)
 
-        # Store the embeddings
         all_embeddings.append(embeddings.cpu())
         all_labels.append(label)
 
-# Convert the list of embeddings to a tensor
 all_embeddings = torch.cat(all_embeddings, dim=0)
 all_labels = torch.tensor(all_labels)
 
