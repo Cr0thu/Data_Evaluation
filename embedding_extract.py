@@ -5,6 +5,8 @@ from datasets import load_dataset
 import sys
 from tqdm import tqdm
 
+device = "cuda:1"
+
 def last_token_pool(last_hidden_states: torch.Tensor,
                     attention_mask: torch.Tensor) -> torch.Tensor:
     left_padding = (attention_mask[:, -1].sum() == attention_mask.shape[0])
@@ -19,8 +21,8 @@ def last_token_pool(last_hidden_states: torch.Tensor,
 dataset = load_dataset('imdb', split = 'test')
 
 # Initialize the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained('Alibaba-NLP/gte-Qwen2-7B-instruct', trust_remote_code=True)
-model = AutoModel.from_pretrained('Alibaba-NLP/gte-Qwen2-7B-instruct', trust_remote_code=True, torch_dtype=torch.bfloat16, num_labels = 2)
+tokenizer = AutoTokenizer.from_pretrained('../Alibaba-NLP/gte-Qwen2-7B-instruct', trust_remote_code=True)
+model = AutoModel.from_pretrained('../Alibaba-NLP/gte-Qwen2-7B-instruct', trust_remote_code=True, torch_dtype=torch.bfloat16, num_labels = 2)
 model = model.cuda()
 
 max_length = 2048
